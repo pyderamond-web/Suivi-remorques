@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0f172a" />
+  <title>Suivi Récolte Remorques</title>
+
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
+
+  <style>
+    :root {
+      --bg: #0b1220;
+      --card: #111827;
+      --card2: #1f2937;
+      --text: #f8fafc;
+      --muted: #cbd5e1;
+      --border: #334155;
+      --primary: #22c55e;
+      --primaryText: #052e16;
+      --danger: #ef4444;
+      --dangerDark: #991b1b;
+      --input: #020617;
+      --shadow: rgba(0,0,0,.35);
+      --radius: 22px;
+      --fieldH: 68px;
+      --fontBase: 19px;
+      --fontBig: 24px;
+      --fontHuge: 38px;
+    }
+
+    body.light {
+      --bg: #eef2f7;
+      --card: #ffffff;
+      --card2: #f8fafc;
+      --text: #0f172a;
+      --muted: #475569;
+      --border: #cbd5e1;
+      --primary: #16a34a;
+      --primaryText: #ecfdf5;
+      --danger: #dc2626;
+      --dangerDark: #991b1b;
+      --input: #ffffff;
+      --shadow: rgba(15,23,42,.12);
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html {
+      font-size: 18px;
+    }
+
+    body {
+      margin: 0;
+      padding: 12px;
+      padding-bottom: 118px;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.35;
+      font-size: var(--fontBase);
+      -webkit-text-size-adjust: 100%;
+    }
+
+    .app {
+      max-width: 920px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: 1fr 74px;
+      gap: 10px;
+      align-items: stretch;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.7rem, 8vw, 2.4rem);
+      line-height: 1.05;
+      letter-spacing: -0.03em;
+    }
+
+    h2 {
+      margin: 0 0 14px;
+      font-size: 1.45rem;
+      line-height: 1.1;
+    }
+
+    h3 {
+      margin: 18px 0 10px;
+      font-size: 1.15rem;
+    }
+
+    .subtitle {
+      margin: 8px 0 0;
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 8px 24px var(--shadow);
+    }
+
+    .main-card {
+      padding: 18px;
+    }
+
+    label {
+      display: block;
+      font-weight: 900;
+      font-size: 1.1rem;
+      margin: 0 0 9px;
+      color: var(--text);
+    }
+
+    select,
+    input,
+    textarea,
+    button {
+      width: 100%;
+      border-radius: 18px;
+      border: 2px solid var(--border);
+      padding: 0 18px;
+      font-size: 1.25rem;
+      font-weight: 750;
+      background: var(--input);
+      color: var(--text);
+      min-height: var(--fieldH);
+      outline: none;
+      touch-action: manipulation;
+    }
+
+    select:focus,
+    input:focus,
+    textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--primary) 28%, transparent);
+    }
+
+    input::placeholder,
+    textarea::placeholder {
+      color: color-mix(in srgb, var(--muted) 70%, transparent);
+      font-weight: 650;
+    }
+
+    textarea {
+      min-height: 118px;
+      resize: vertical;
+      padding-top: 16px;
+      font-size: 1.15rem;
+    }
+
+    button {
+      cursor: pointer;
+      border: none;
+      font-size: 1.25rem;
+      font-weight: 1000;
+      background: var(--primary);
+      color: var(--primaryText);
+      min-height: 72px;
+      box-shadow: 0 5px 0 color-mix(in srgb, var(--primary) 55%, #000);
+    }
+
+    button:active {
+      transform: translateY(3px);
+      box-shadow: 0 2px 0 color-mix(in srgb, var(--primary) 55%, #000);
+    }
+
+    .btn-secondary {
+      background: var(--card2);
+      color: var(--text);
+      border: 2px solid var(--border);
+      box-shadow: none;
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+      box-shadow: 0 5px 0 var(--dangerDark);
+    }
+
+    .theme-btn {
+      min-height: 74px;
+      padding: 0;
+      font-size: 1.8rem;
+      border-radius: 22px;
+    }
+
+    .field {
+      margin-bottom: 16px;
+    }
+
+    .field:last-child {
+      margin-bottom: 0;
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+
+    @media (min-width: 780px) {
+      .two-col {
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+      }
+      .two-col .field {
+        margin-bottom: 16px;
+      }
+    }
+
+    .quick-fill {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 9px;
+      margin-top: 10px;
+    }
+
+    .quick-fill button {
+      min-height: 56px;
+      font-size: 1rem;
+      border-radius: 15px;
+      padding: 0 6px;
+    }
+
+    .tonnage-box {
+      background: linear-gradient(135deg, var(--card2), var(--card));
+      border: 2px solid var(--border);
+      border-radius: 24px;
+      padding: 18px;
+      text-align: center;
+      margin-top: 6px;
+    }
+
+    .tonnage-label {
+      color: var(--muted);
+      font-size: 1rem;
+      font-weight: 800;
+    }
+
+    .tonnage-value {
+      display: block;
+      font-size: var(--fontHuge);
+      line-height: 1.05;
+      font-weight: 1100;
+      color: var(--primary);
+      margin-top: 4px;
+    }
+
+    .add-inline {
+      margin-top: 16px;
+      min-height: 82px;
+      font-size: 1.35rem;
+    }
+
+    .notice {
+      padding: 14px;
+      border-radius: 18px;
+      background: var(--card2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: .98rem;
+      margin-top: 12px;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    @media (min-width: 760px) {
+      .stats {
+        grid-template-columns: repeat(5, 1fr);
+      }
+    }
+
+    .stat {
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 14px 12px;
+      min-height: 98px;
+    }
+
+    .stat .num {
+      display: block;
+      font-size: 1.75rem;
+      font-weight: 1100;
+      color: var(--primary);
+      line-height: 1.05;
+      word-break: break-word;
+    }
+
+    .stat .label {
+      display: block;
+      margin-top: 7px;
+      color: var(--muted);
+      font-size: .9rem;
+      font-weight: 800;
+    }
+
+    .mobile-list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .parcel-row,
+    .entry-row {
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 14px;
+    }
+
+    .parcel-name,
+    .entry-title {
+      font-size: 1.08rem;
+      font-weight: 1000;
+      line-height: 1.2;
+      margin-bottom: 8px;
+    }
+
+    .row-metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .metric {
+      border-radius: 14px;
+      background: var(--card);
+      padding: 10px;
+      border: 1px solid var(--border);
+    }
+
+    .metric strong {
+      display: block;
+      font-size: 1.2rem;
+      color: var(--primary);
+      line-height: 1.1;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: .82rem;
+      font-weight: 800;
+    }
+
+    .entry-meta {
+      color: var(--muted);
+      font-weight: 750;
+      font-size: .95rem;
+      margin-bottom: 8px;
+    }
+
+    .entry-detail {
+      margin: 4px 0;
+      font-size: .98rem;
+    }
+
+    .entry-delete {
+      margin-top: 10px;
+      min-height: 52px;
+      font-size: 1rem;
+      border-radius: 15px;
+    }
+
+    .desktop-table {
+      display: none;
+    }
+
+    @media (min-width: 860px) {
+      .mobile-only {
+        display: none;
+      }
+      .desktop-table {
+        display: block;
+      }
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 820px;
+      background: var(--card);
+      font-size: .95rem;
+    }
+
+    th, td {
+      padding: 11px;
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      background: var(--card2);
+      font-weight: 900;
+    }
+
+    .empty {
+      text-align: center;
+      color: var(--muted);
+      padding: 18px;
+      font-weight: 800;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .bottom-bar {
+      position: fixed;
+      z-index: 50;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+      background: color-mix(in srgb, var(--bg) 93%, transparent);
+      backdrop-filter: blur(14px);
+      border-top: 1px solid var(--border);
+    }
+
+    .bottom-inner {
+      max-width: 920px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 10px;
+    }
+
+    .bottom-inner button {
+      min-height: 74px;
+      border-radius: 22px;
+      font-size: 1.18rem;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    @media (min-width: 760px) {
+      .actions {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (max-width: 430px) {
+      body {
+        padding: 10px;
+        padding-bottom: 114px;
+      }
+
+      .card {
+        padding: 14px;
+        border-radius: 20px;
+      }
+
+      select,
+      input,
+      textarea {
+        min-height: 72px;
+        font-size: 1.25rem;
+      }
+
+      label {
+        font-size: 1.12rem;
+      }
+
+      .tonnage-value {
+        font-size: 2.4rem;
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+
+      .stat {
+        min-height: 86px;
+      }
+
+      .quick-fill {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .quick-fill button {
+        min-height: 62px;
+        font-size: 1.05rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="app">
+    <header>
+      <div class="card" style="margin-bottom:0">
+        <h1>Suivi Remorques</h1>
+        <p class="subtitle">Récolte · saisie rapide · export Excel</p>
+      </div>
+      <button class="theme-btn btn-secondary" id="themeBtn" type="button" aria-label="Changer le thème">🌙</button>
+    </header>
+
+    <section class="card main-card" id="saisie">
+      <h2>Nouvelle saisie</h2>
+
+      <div class="field">
+        <label for="trailer">Remorque</label>
+        <select id="trailer">
+          <option value="Artésienne">Artésienne</option>
+          <option value="Maupu">Maupu</option>
+          <option value="Remorque de semence">Remorque de semence</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="parcel">Parcelle</label>
+        <select id="parcel"></select>
+      </div>
+
+      <div class="two-col">
+        <div class="field" id="fillBlock">
+          <label for="fill">Remplissage (%)</label>
+          <input id="fill" type="number" inputmode="decimal" min="0" max="100" step="1" placeholder="Ex : 75" />
+          <div class="quick-fill" aria-label="Raccourcis remplissage">
+            <button type="button" class="btn-secondary" data-fill="25">25%</button>
+            <button type="button" class="btn-secondary" data-fill="50">50%</button>
+            <button type="button" class="btn-secondary" data-fill="75">75%</button>
+            <button type="button" class="btn-secondary" data-fill="100">100%</button>
+          </div>
+        </div>
+
+        <div class="field hidden" id="seedBlock">
+          <label for="seedWeight">Poids semence (t) *</label>
+          <input id="seedWeight" type="number" inputmode="decimal" min="0" step="0.01" placeholder="Ex : 4,50" />
+        </div>
+
+        <div class="field">
+          <label for="sample">Échantillon</label>
+          <select id="sample">
+            <option value="Non">Non</option>
+            <option value="Oui">Oui</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="observation">Observation</label>
+        <textarea id="observation" placeholder="Observation libre..."></textarea>
+      </div>
+
+      <div class="tonnage-box">
+        <span class="tonnage-label">Tonnage calculé</span>
+        <strong class="tonnage-value"><span id="computedTons">0,00</span> t</strong>
+      </div>
+
+      <button type="button" id="addBtnInline" class="add-inline">Ajouter la saisie</button>
+
+      <div class="notice">
+        Chaque saisie est horodatée et sauvegardée automatiquement sur cet appareil.
+      </div>
+    </section>
+
+    <section class="card" id="statsBlock">
+      <h2>Statistiques</h2>
+      <div class="stats" id="globalStats"></div>
+    </section>
+
+    <section class="card">
+      <h2>Par parcelle</h2>
+      <div class="mobile-list" id="parcelStatsMobile"></div>
+
+      <div class="desktop-table">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Parcelle</th>
+                <th>Nombre de remorques</th>
+                <th>Tonnage total</th>
+              </tr>
+            </thead>
+            <tbody id="parcelStatsTable"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Historique</h2>
+      <div id="emptyHistory" class="empty hidden">Aucune saisie pour le moment.</div>
+
+      <div class="mobile-list mobile-only" id="historyCards"></div>
+
+      <div class="desktop-table">
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Heure</th>
+                <th>Remorque</th>
+                <th>Parcelle</th>
+                <th>%</th>
+                <th>Semence</th>
+                <th>Tonnage</th>
+                <th>Éch.</th>
+                <th>Observation</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody id="historyRows"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="button" id="exportBtn">Exporter Excel</button>
+        <button type="button" id="backupBtn" class="btn-secondary">Sauvegarde JSON</button>
+        <button type="button" id="clearBtn" class="btn-danger">Tout effacer</button>
+      </div>
+    </section>
+  </div>
+
+  <div class="bottom-bar">
+    <div class="bottom-inner">
+      <button type="button" id="addBtn">Ajouter</button>
+      <button type="button" id="statsBtn" class="btn-secondary">Stats</button>
+    </div>
+  </div>
+
+<script>
+(function () {
+  "use strict";
+
+  const STORAGE_KEY = "suivi_recolte_remorques_saisies_v2_mobile";
+  const LAST_PARCEL_KEY = "suivi_recolte_remorques_derniere_parcelle_v2_mobile";
+  const THEME_KEY = "suivi_recolte_remorques_theme_v2_mobile";
+
+  const PARCELS = [
+    "Champ Pierrot - Audace",
+    "Champ Pierrot - Sphère",
+    "Pointe",
+    "Caussare - Thermidor",
+    "Caussare - Hemingway",
+    "Buisson - Hemingway",
+    "Buisson - Mélange",
+    "Motte",
+    "Poirier",
+    "Vignettes",
+    "Vallée de Froidmont",
+    "Grand Vallée"
+  ];
+
+  const FULL_WEIGHTS = {
+    "Artésienne": 18.60,
+    "Maupu": 20.94,
+    "Remorque de semence": null
+  };
+
+  const els = {
+    trailer: document.getElementById("trailer"),
+    parcel: document.getElementById("parcel"),
+    fill: document.getElementById("fill"),
+    seedWeight: document.getElementById("seedWeight"),
+    fillBlock: document.getElementById("fillBlock"),
+    seedBlock: document.getElementById("seedBlock"),
+    sample: document.getElementById("sample"),
+    observation: document.getElementById("observation"),
+    computedTons: document.getElementById("computedTons"),
+    addBtn: document.getElementById("addBtn"),
+    addBtnInline: document.getElementById("addBtnInline"),
+    exportBtn: document.getElementById("exportBtn"),
+    backupBtn: document.getElementById("backupBtn"),
+    clearBtn: document.getElementById("clearBtn"),
+    themeBtn: document.getElementById("themeBtn"),
+    statsBtn: document.getElementById("statsBtn"),
+    globalStats: document.getElementById("globalStats"),
+    parcelStatsMobile: document.getElementById("parcelStatsMobile"),
+    parcelStatsTable: document.getElementById("parcelStatsTable"),
+    historyCards: document.getElementById("historyCards"),
+    historyRows: document.getElementById("historyRows"),
+    emptyHistory: document.getElementById("emptyHistory")
+  };
+
+  let entries = loadEntries();
+
+  function init() {
+    PARCELS.forEach(parcel => {
+      const option = document.createElement("option");
+      option.value = parcel;
+      option.textContent = parcel;
+      els.parcel.appendChild(option);
+    });
+
+    const lastParcel = localStorage.getItem(LAST_PARCEL_KEY);
+    if (lastParcel && PARCELS.includes(lastParcel)) els.parcel.value = lastParcel;
+
+    if (localStorage.getItem(THEME_KEY) === "light") document.body.classList.add("light");
+    updateThemeIcon();
+
+    els.trailer.addEventListener("change", updateFormMode);
+    els.fill.addEventListener("input", updateComputedTons);
+    els.seedWeight.addEventListener("input", updateComputedTons);
+    els.addBtn.addEventListener("click", addEntry);
+    els.addBtnInline.addEventListener("click", addEntry);
+    els.exportBtn.addEventListener("click", exportExcel);
+    els.backupBtn.addEventListener("click", downloadJsonBackup);
+    els.clearBtn.addEventListener("click", clearAll);
+    els.themeBtn.addEventListener("click", toggleTheme);
+    els.statsBtn.addEventListener("click", () => document.getElementById("statsBlock").scrollIntoView({ behavior: "smooth" }));
+
+    document.querySelectorAll("[data-fill]").forEach(btn => {
+      btn.addEventListener("click", () => {
+        els.fill.value = btn.dataset.fill;
+        updateComputedTons();
+      });
+    });
+
+    updateFormMode();
+    renderAll();
+  }
+
+  function normalizeNumber(value) {
+    if (typeof value === "string") value = value.replace(",", ".");
+    const n = Number(value);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  function round2(value) {
+    return Math.round((Number(value) + Number.EPSILON) * 100) / 100;
+  }
+
+  function formatTons(value) {
+    return Number(value || 0).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function getComputedTons() {
+    const trailer = els.trailer.value;
+    if (trailer === "Remorque de semence") return round2(normalizeNumber(els.seedWeight.value));
+    return round2(FULL_WEIGHTS[trailer] * normalizeNumber(els.fill.value) / 100);
+  }
+
+  function updateComputedTons() {
+    els.computedTons.textContent = formatTons(getComputedTons());
+  }
+
+  function updateFormMode() {
+    const isSeed = els.trailer.value === "Remorque de semence";
+    els.seedBlock.classList.toggle("hidden", !isSeed);
+    els.fillBlock.classList.toggle("hidden", isSeed);
+    if (isSeed) els.fill.value = "";
+    else els.seedWeight.value = "";
+    updateComputedTons();
+  }
+
+  function addEntry() {
+    const now = new Date();
+    const trailer = els.trailer.value;
+    const fill = normalizeNumber(els.fill.value);
+    const seedWeight = normalizeNumber(els.seedWeight.value);
+
+    if (trailer !== "Remorque de semence" && (!els.fill.value || fill <= 0 || fill > 100)) {
+      alert("Indiquez un remplissage entre 1 et 100 %.");
+      return;
+    }
+
+    if (trailer === "Remorque de semence" && (!els.seedWeight.value || seedWeight <= 0)) {
+      alert("Le poids estimé est obligatoire pour la remorque de semence.");
+      return;
+    }
+
+    entries.push({
+      id: randomId(),
+      iso: now.toISOString(),
+      date: now.toLocaleDateString("fr-FR"),
+      heure: now.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", second: "2-digit" }),
+      remorque: trailer,
+      parcelle: els.parcel.value,
+      remplissage_pct: trailer === "Remorque de semence" ? "" : fill,
+      poids_semence_t: trailer === "Remorque de semence" ? seedWeight : "",
+      tonnage_t: getComputedTons(),
+      echantillon: els.sample.value,
+      observation: els.observation.value.trim()
+    });
+
+    saveEntries();
+    localStorage.setItem(LAST_PARCEL_KEY, els.parcel.value);
+
+    els.observation.value = "";
+    if (trailer === "Remorque de semence") els.seedWeight.value = "";
+    else els.fill.value = "";
+
+    updateComputedTons();
+    renderAll();
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function randomId() {
+    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+    return String(Date.now()) + "_" + Math.random().toString(16).slice(2);
+  }
+
+  function loadEntries() {
+    try {
+      const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+      return Array.isArray(parsed) ? parsed : [];
+    } catch {
+      return [];
+    }
+  }
+
+  function saveEntries() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
+  }
+
+  function computeStats() {
+    const totalCount = entries.length;
+    const countArt = entries.filter(e => e.remorque === "Artésienne").length;
+    const countMaupu = entries.filter(e => e.remorque === "Maupu").length;
+    const countSeed = entries.filter(e => e.remorque === "Remorque de semence").length;
+    const totalTons = round2(entries.reduce((s, e) => s + normalizeNumber(e.tonnage_t), 0));
+    const byParcel = PARCELS.map(parcel => {
+      const rows = entries.filter(e => e.parcelle === parcel);
+      return {
+        parcelle: parcel,
+        nombre_remorques: rows.length,
+        tonnage_total_t: round2(rows.reduce((s, e) => s + normalizeNumber(e.tonnage_t), 0))
+      };
+    });
+    return { totalCount, countArt, countMaupu, countSeed, totalTons, byParcel };
+  }
+
+  function renderAll() {
+    renderGlobalStats();
+    renderParcelStats();
+    renderHistory();
+  }
+
+  function renderGlobalStats() {
+    const s = computeStats();
+    els.globalStats.innerHTML = [
+      statCard(s.totalCount, "Total remorques"),
+      statCard(s.countArt, "Artésienne"),
+      statCard(s.countMaupu, "Maupu"),
+      statCard(s.countSeed, "Semences"),
+      statCard(formatTons(s.totalTons) + " t", "Tonnage total")
+    ].join("");
+  }
+
+  function statCard(num, label) {
+    return `<div class="stat"><span class="num">${num}</span><span class="label">${label}</span></div>`;
+  }
+
+  function renderParcelStats() {
+    const rows = computeStats().byParcel;
+
+    els.parcelStatsMobile.innerHTML = rows.map(r => `
+      <div class="parcel-row">
+        <div class="parcel-name">${escapeHtml(r.parcelle)}</div>
+        <div class="row-metrics">
+          <div class="metric"><strong>${r.nombre_remorques}</strong><span>Remorques</span></div>
+          <div class="metric"><strong>${formatTons(r.tonnage_total_t)} t</strong><span>Tonnage</span></div>
+        </div>
+      </div>
+    `).join("");
+
+    els.parcelStatsTable.innerHTML = rows.map(r => `
+      <tr>
+        <td>${escapeHtml(r.parcelle)}</td>
+        <td>${r.nombre_remorques}</td>
+        <td><strong>${formatTons(r.tonnage_total_t)} t</strong></td>
+      </tr>
+    `).join("");
+  }
+
+  function renderHistory() {
+    const hasEntries = entries.length > 0;
+    els.emptyHistory.classList.toggle("hidden", hasEntries);
+
+    const reversed = entries.slice().reverse();
+
+    els.historyCards.innerHTML = reversed.map(e => `
+      <div class="entry-row">
+        <div class="entry-title">${escapeHtml(e.remorque)} · ${formatTons(e.tonnage_t)} t</div>
+        <div class="entry-meta">${escapeHtml(e.date)} à ${escapeHtml(e.heure)}</div>
+        <div class="entry-detail"><strong>Parcelle :</strong> ${escapeHtml(e.parcelle)}</div>
+        <div class="entry-detail"><strong>Remplissage :</strong> ${e.remplissage_pct === "" ? "—" : escapeHtml(String(e.remplissage_pct)) + " %"}</div>
+        <div class="entry-detail"><strong>Semence :</strong> ${e.poids_semence_t === "" ? "—" : formatTons(e.poids_semence_t) + " t"}</div>
+        <div class="entry-detail"><strong>Échantillon :</strong> ${escapeHtml(e.echantillon)}</div>
+        ${e.observation ? `<div class="entry-detail"><strong>Observation :</strong> ${escapeHtml(e.observation)}</div>` : ""}
+        <button class="btn-danger entry-delete" type="button" onclick="window.deleteEntry('${e.id}')">Supprimer</button>
+      </div>
+    `).join("");
+
+    els.historyRows.innerHTML = reversed.map(e => `
+      <tr>
+        <td>${escapeHtml(e.date)}</td>
+        <td>${escapeHtml(e.heure)}</td>
+        <td>${escapeHtml(e.remorque)}</td>
+        <td>${escapeHtml(e.parcelle)}</td>
+        <td>${e.remplissage_pct === "" ? "—" : escapeHtml(String(e.remplissage_pct)) + " %"}</td>
+        <td>${e.poids_semence_t === "" ? "—" : formatTons(e.poids_semence_t) + " t"}</td>
+        <td><strong>${formatTons(e.tonnage_t)} t</strong></td>
+        <td>${escapeHtml(e.echantillon)}</td>
+        <td>${escapeHtml(e.observation || "")}</td>
+        <td><button class="btn-danger" type="button" onclick="window.deleteEntry('${e.id}')">Supprimer</button></td>
+      </tr>
+    `).join("");
+  }
+
+  window.deleteEntry = function(id) {
+    if (!confirm("Supprimer cette saisie ?")) return;
+    entries = entries.filter(e => e.id !== id);
+    saveEntries();
+    renderAll();
+  };
+
+  function exportExcel() {
+    if (typeof XLSX === "undefined") {
+      alert("Export Excel indisponible : ouvrez l'application avec une connexion internet pour charger le module Excel.");
+      return;
+    }
+
+    const stats = computeStats();
+
+    const saisies = entries.map(e => ({
+      Date: e.date,
+      Heure: e.heure,
+      Remorque: e.remorque,
+      Parcelle: e.parcelle,
+      "Remplissage (%)": e.remplissage_pct,
+      "Poids semence (t)": e.poids_semence_t,
+      "Tonnage (t)": e.tonnage_t,
+      "Échantillon": e.echantillon,
+      Observation: e.observation
+    }));
+
+    const synthese = [
+      { Indicateur: "Nombre total de remorques", Valeur: stats.totalCount, "Tonnage total (t)": "" },
+      { Indicateur: "Nombre Artésienne", Valeur: stats.countArt, "Tonnage total (t)": "" },
+      { Indicateur: "Nombre Maupu", Valeur: stats.countMaupu, "Tonnage total (t)": "" },
+      { Indicateur: "Nombre semences", Valeur: stats.countSeed, "Tonnage total (t)": "" },
+      { Indicateur: "Tonnage total", Valeur: "", "Tonnage total (t)": stats.totalTons },
+      {},
+      { Indicateur: "Parcelle", Valeur: "Nombre de remorques", "Tonnage total (t)": "Tonnage total (t)" },
+      ...stats.byParcel.map(p => ({
+        Indicateur: p.parcelle,
+        Valeur: p.nombre_remorques,
+        "Tonnage total (t)": p.tonnage_total_t
+      }))
+    ];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(saisies), "Saisies");
+    XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(synthese), "Synthèse");
+
+    XLSX.writeFile(wb, "Suivi_Recolte_Remorques.xlsx");
+  }
+
+  function downloadJsonBackup() {
+    const blob = new Blob([JSON.stringify({
+      application: "Suivi Récolte Remorques",
+      date_export: new Date().toISOString(),
+      saisies: entries
+    }, null, 2)], { type: "application/json" });
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "Sauvegarde_Suivi_Recolte_Remorques.json";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function clearAll() {
+    if (!entries.length) {
+      alert("Aucune saisie à effacer.");
+      return;
+    }
+    if (!confirm("Effacer tout l'historique local ?")) return;
+    entries = [];
+    saveEntries();
+    renderAll();
+  }
+
+  function toggleTheme() {
+    document.body.classList.toggle("light");
+    localStorage.setItem(THEME_KEY, document.body.classList.contains("light") ? "light" : "dark");
+    updateThemeIcon();
+  }
+
+  function updateThemeIcon() {
+    els.themeBtn.textContent = document.body.classList.contains("light") ? "☀️" : "🌙";
+  }
+
+  function escapeHtml(value) {
+    return String(value)
+      .replaceAll("&", "&amp;")
+      .replaceAll("<", "&lt;")
+      .replaceAll(">", "&gt;")
+      .replaceAll('"', "&quot;")
+      .replaceAll("'", "&#039;");
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
